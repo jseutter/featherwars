@@ -31,6 +31,7 @@ from pyglet import font
 import random
 
 import helper
+import sprite
 
 class SpaceGameWindow(window.Window):
 

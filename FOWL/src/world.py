@@ -12,7 +12,7 @@ class World:
         self.quadratic=gluNewQuadric()
         gluQuadricNormals(self.quadratic, GLU_SMOOTH)
         gluQuadricTexture(self.quadratic, GL_TRUE)
-        self.texture = LoadGLTextures('world2.bmp')
+        self.texture = LoadGLTextures('../data/world.bmp')
         
     def draw(self):
         glTranslatef(0.0,0.0,-30)
