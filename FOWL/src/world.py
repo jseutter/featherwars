@@ -3,6 +3,25 @@ import math
 from helper import LoadGLTextures
 import ctypes
 import sys
+from math import sin,cos
+from pyglet import window
+from pyglet import clock
+from pyglet import font
+
+LightAmbient = [ 0.5, 1.0, 0.5, 1.0 ]
+LightDiffuse = [ 1.0, 1.0, 1.0, 1.0 ]
+LightPosition = [ -50.0, 0.0, 2.0, 1.0 ]
+
+
+light_position = [ -1.0, 0.5, 6.0, 0.0 ]
+mat_ambient = [ 0.8, 0, 0, 1.0 ]
+mat_diffuse = [ 0.9, 0.7, 0.1, 1.0 ]
+mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
+mat_shininess = [ 50.0 ]
+
+def vec(*args):
+    return (GLfloat * len(args))(*args)
+
 
 class World:
     worldTexture=None
@@ -16,9 +35,10 @@ class World:
         gluQuadricNormals(self.quadratic, GLU_SMOOTH)
         gluQuadricTexture(self.quadratic, GL_TRUE)
         self.texture = LoadGLTextures('../data/world.bmp')
+        self.resetMatrix = None
         self.oldRotationMatrix = None
         self.resetMatrix = None
-    
+
     def rotate(self, new_rotx, new_roty):
         #print "NRX: ", new_rotx, "NRY: ", new_roty
 
@@ -41,54 +61,62 @@ class World:
         glGetDoublev( GL_MODELVIEW_MATRIX, temp_rot_matrix )
 
         glLoadIdentity()
+
         if (self.oldRotationMatrix):
             # load the old matrix
             glMultMatrixf( (ctypes.c_float*16)(*self.oldRotationMatrix) )
 
-        # rotate by the new values
-        #glRotatef(new_rotx, 1,0,0)
-        #glRotatef(new_roty, 0,1,0)
-        #glRotatef(self.rotz, 0,0,1)
         glMultMatrixf( (ctypes.c_float*16)(*temp_rot_matrix) )
 
         # save the rotation matrix
         self.oldRotationMatrix = (ctypes.c_double*16)()
         glGetDoublev( GL_MODELVIEW_MATRIX, self.oldRotationMatrix )
-
-        #import sys
-        #for i in range(0, 16):
-        #    sys.stdout.write("%s," %(self.oldRotationMatrix[i]))
-        #sys.stdout.write("\n")
-
-        glPopMatrix()
-        # get original sphere transform matrix
-        #var tempMatrix:Matrix3D = sphere.transform;
         
-        # create the rotation Matrixes for each local rotation axis given the corresponding X & Y
-        # distances where the user rolled over on the surface of the sphere
-        # Note: The value passed to Matrix3D.rotationX() should really be radians but I'm just using the x & y values 
-        # divided by rotSpeedRatio which is a constant to bring the values down to "radiany" magnitudes 
-        # and thus decrease the speed of the rotation. this will have to be the variable to work with 
-        #when I implement the slowing down of the rotation.
-        ##var rotX:Matrix3D = Matrix3D.rotationX(-[mouse Y here]/[rotSpeedRatio]);
-        ##var rotY:Matrix3D = Matrix3D.rotationY(-[mouse X here]/[rotSpeedRatio]);
+        glPopMatrix()
 
-        #Mix both Matrixes together
-        ##var rotResult:Matrix3D = Matrix3D.multiply(rotX,rotY);
-        #Apply (Multiply) the final transform matrix to the original one and assign it to the sphere transform
-        ##sphere.transform = Matrix3D.multiply(rotResult,tempMatrix);
-        #pass
-    
     def draw(self):
-        glPushMatrix()
+
         glLoadIdentity()
-        glTranslatef(0.0,0.0,-30)
+        glTranslatef(0,0,-40)
+        
+        # rotate by the new values
+        glRotatef(self.rotx, 1,0,0)
+        glRotatef(self.roty, 0,1,0)
+        glRotatef(self.rotz, 0,0,1)
 
         # rotate with save matrix
         if (self.oldRotationMatrix):
             glMultMatrixf( (ctypes.c_float*16)(*self.oldRotationMatrix) )
+        
 
-        glBindTexture(self.texture.target, self.texture.id)
+        glShadeModel(GL_SMOOTH)               # Enable Smooth Shading
+
+        glEnable(GL_DEPTH_TEST)               # Enables Depth Testing
+        glDepthFunc(GL_LEQUAL)       
+        
+        glLightfv ( GL_LIGHT0, GL_POSITION,
+                    (GLfloat * len(light_position))(*light_position))
+        glEnable ( GL_LIGHTING );
+        glEnable ( GL_LIGHT0 );
+        glShadeModel ( GL_SMOOTH );
+        glMaterialfv ( GL_FRONT, GL_AMBIENT,
+                       (GLfloat * len(mat_ambient))(*mat_ambient))
+        glMaterialfv ( GL_FRONT, GL_DIFFUSE,
+                       (GLfloat * len(mat_diffuse))(*mat_diffuse) )
+        
+        glMaterialfv ( GL_FRONT, GL_SPECULAR,
+                       (GLfloat * len(mat_specular))(*light_position))
+        glMaterialfv ( GL_FRONT, GL_SHININESS,
+                       (GLfloat * len(mat_shininess))(*mat_shininess ))
+
+ 
+
+        glDisable(GL_TEXTURE_2D)
+
+        glColor3f(0,1,0)
         gluSphere(self.quadratic,self.radius,32,32)
-        glPopMatrix()
+        gluCylinder(self.quadratic,1,1,20,32,32)
+        glRotatef(-90,0,1,0)
+        gluCylinder(self.quadratic,1,1,20,32,32)
+        glEnable(GL_TEXTURE_2D)
 

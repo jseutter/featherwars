@@ -9,13 +9,14 @@ import math
 from bird import Bird
 from pyglet.gl import *
 from world import World
+import sys
 
 def vec(*args):
     return (GLfloat * len(args))(*args)
 
 LightAmbient = [ 0.5, 1.0, 0.5, 1.0 ]
 LightDiffuse = [ 1.0, 1.0, 1.0, 1.0 ]
-LightPosition = [ -50.0, 0.0, 2.0, 1.0 ]
+LightPosition = [ -50.0, 0.0, -10.0, 1.0 ]
 
 mat_shininess = [ 5.0 ]
 
@@ -27,7 +28,8 @@ class MainWindow(window.Window):
         self.initGL()
         self.bird = Bird()
         self.world = World()
-
+        self.theta = 0
+        self.phi = 0
 
     def initGL(self):
 
@@ -53,17 +55,38 @@ class MainWindow(window.Window):
         glColor4f(1.0,1.0,1.0,0.5)
         glBlendFunc(GL_SRC_ALPHA,GL_ONE)
 
-    def rotate_world(self, interval):
-        speed = 1
-        norm = math.sqrt(self.bird.dest_x*self.bird.dest_x + self.bird.dest_y*self.bird.dest_y)
-        if (norm):
-            #self.world.rotx = speed*self.bird.dest_y/norm
-            #self.world.roty = speed*-self.bird.dest_x/norm
-            self.world.rotate(speed*self.bird.dest_y/norm, -speed*self.bird.dest_x/norm)
-        #self.world.rotate(1*self.bird.dest_y, 1*-self.bird.dest_x)
+    def rotate_world(self):
+        # know bird.roty is off of (1,0)
+        ref_angle = self.bird.roty
+
+
+        sys.stdout.write("RA: %s, " %(ref_angle))
+        point1=0
+        if (ref_angle >= 0 and ref_angle<=90):
+            point1 = math.atan(ref_angle * math.pi/180.0)
+        elif (ref_angle >= 90 and ref_angle<=180):
+            point1 = math.atan((180-ref_angle) * math.pi/180.0)
+        elif (ref_angle >= 180 and ref_angle<=270):
+            point1 = -math.atan((ref_angle-180) * math.pi/180.0)
+        else:
+            point1 = math.atan((ref_angle) * math.pi/180.0)
+
+        sys.stdout.write("P1: %s" %(point1))
+        sys.stdout.write("\n")
+        self.world.rotate(0, -point1)
+        #speed = 1
+        #norm = math.sqrt(self.bird.dest_x*self.bird.dest_x + self.bird.dest_y*self.bird.dest_y)
+        #if (norm):
+            #self.world.rotate(speed*self.bird.dest_y/norm, -speed*self.bird.dest_x/norm)
+        #    self.world.rotate(0, -speed*self.bird.dest_x/norm)
+        #    self.world.rotate(speed*self.bird.dest_y/norm, 0)
+            
+        
+
         
     def animate_bird(self, interval):
         self.bird.flap()
+        self.rotate_world()
         #self.bird.move()
 
     def update(self):
@@ -83,8 +106,8 @@ class MainWindow(window.Window):
         
     def main_loop(self):
         clock.set_fps_limit(30)
-        clock.schedule_interval(self.animate_bird, 0.1)
-        clock.schedule_interval(self.rotate_world, 0.1)
+        clock.schedule_interval(self.animate_bird, 0.01)
+        #clock.schedule_interval(self.rotate_world, 0.1)
         
         while not self.has_exit:
             self.dispatch_events()
@@ -131,9 +154,17 @@ class MainWindow(window.Window):
             
         if (y_rot):
             self.bird.roty_dest=new_roty_dest
+            
 
         self.bird.dest_x = new_dest_x
         self.bird.dest_y = new_dest_y
+        
+        if (self.world.oldRotationMatrix):
+            self.world.resetMatrix = self.world.oldRotationMatrix
+
+        #self.world.oldRotationMatrix = None
+        
+       
 
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)
