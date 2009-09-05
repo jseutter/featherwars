@@ -39,34 +39,19 @@ class World:
         self.oldRotationMatrix = None
         self.resetMatrix = None
 
-    def rotate(self, new_rotx, new_roty):
+    def rotate(self, angle, new_rotx, new_roty):
         #print "NRX: ", new_rotx, "NRY: ", new_roty
 
         glPushMatrix()
 
         glLoadIdentity()
-        glRotatef(new_rotx, 1,0,0)
-        x_rot_matrix = (ctypes.c_double*16)()
-        glGetDoublev( GL_MODELVIEW_MATRIX, x_rot_matrix )
-
-        glLoadIdentity()
-        glRotatef(new_roty, 0,1,0)
-        y_rot_matrix = (ctypes.c_double*16)()
-        glGetDoublev( GL_MODELVIEW_MATRIX, y_rot_matrix )
-
-        glLoadIdentity()
-        glMultMatrixf( (ctypes.c_float*16)(*x_rot_matrix) )
-        glMultMatrixf( (ctypes.c_float*16)(*y_rot_matrix) )
-        temp_rot_matrix = (ctypes.c_double*16)()
-        glGetDoublev( GL_MODELVIEW_MATRIX, temp_rot_matrix )
-
-        glLoadIdentity()
-
+        #glRotatef(new_rotx, 1,0,0)
+        #glRotatef(new_roty, 0,1,0)
+        glRotatef(angle, new_rotx, new_roty, 0)
+        
         if (self.oldRotationMatrix):
             # load the old matrix
             glMultMatrixf( (ctypes.c_float*16)(*self.oldRotationMatrix) )
-
-        glMultMatrixf( (ctypes.c_float*16)(*temp_rot_matrix) )
 
         # save the rotation matrix
         self.oldRotationMatrix = (ctypes.c_double*16)()

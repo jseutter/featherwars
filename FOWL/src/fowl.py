@@ -58,9 +58,8 @@ class MainWindow(window.Window):
     def rotate_world(self):
         # know bird.roty is off of (1,0)
         ref_angle = self.bird.roty
-
-
         sys.stdout.write("RA: %s, " %(ref_angle))
+        
         point1=0
         if (ref_angle >= 0 and ref_angle<=90):
             point1 = math.atan(ref_angle * math.pi/180.0)
@@ -70,10 +69,42 @@ class MainWindow(window.Window):
             point1 = -math.atan((ref_angle-180) * math.pi/180.0)
         else:
             point1 = math.atan((ref_angle) * math.pi/180.0)
+        sys.stdout.write("P1: %s, " %(point1))
 
-        sys.stdout.write("P1: %s" %(point1))
+        point2=0
+        if (ref_angle >= 0 and ref_angle<=90):
+            point2 = math.atan((90-ref_angle) * math.pi/180.0)
+        elif (ref_angle >= 90 and ref_angle<=180):
+            point2 = math.atan((90.0-ref_angle) * math.pi/180.0)
+        elif (ref_angle >= 180 and ref_angle<=270):
+            point2 = math.atan((ref_angle-270) * math.pi/180.0)
+        else:
+            # between -90 and 0
+            point2 = math.atan((ref_angle+90) * math.pi/180.0)
+
+        sys.stdout.write("P2: %s, " %(point2))
+
+
+        self.world.rotate(1, point2, -point1)
+        #self.world.rotate(0, -point1)
+        #self.world.rotate(point2, 0)
+        
+        #self.world.roty += -point1
+        #self.world.rotx += point2
+
+        #if (self.world.rotx > 360):
+        #    self.world.rotx = 0
+
+        #if (self.world.roty > 360):
+        #    self.world.roty = 0
+
+        #sys.stdout.write("RX: %s, " %(self.world.rotx))
+        #sys.stdout.write("RY: %s, " %(self.world.roty))
+
+
         sys.stdout.write("\n")
-        self.world.rotate(0, -point1)
+        #self.world.rotate(point2, -point1)
+
         #speed = 1
         #norm = math.sqrt(self.bird.dest_x*self.bird.dest_x + self.bird.dest_y*self.bird.dest_y)
         #if (norm):
@@ -163,7 +194,6 @@ class MainWindow(window.Window):
             self.world.resetMatrix = self.world.oldRotationMatrix
 
         #self.world.oldRotationMatrix = None
-        
        
 
     def on_resize(self, width, height):
