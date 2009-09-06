@@ -10,13 +10,14 @@ from bird import Bird
 from pyglet.gl import *
 from world import World
 import sys
+from enemy import Enemy
 
 def vec(*args):
     return (GLfloat * len(args))(*args)
 
-LightAmbient = [ 0.5, 1.0, 0.5, 1.0 ]
+LightAmbient = [ 1.0, 1.0, 1.0, 1.0 ]
 LightDiffuse = [ 1.0, 1.0, 1.0, 1.0 ]
-LightPosition = [ -50.0, 0.0, -10.0, 1.0 ]
+LightPosition = [ 0.0, 0.0, -10.0, 1.0 ]
 
 mat_shininess = [ 5.0 ]
 
@@ -28,8 +29,7 @@ class MainWindow(window.Window):
         self.initGL()
         self.bird = Bird()
         self.world = World()
-        self.theta = 0
-        self.phi = 0
+        self.enemy = Enemy()
 
     def initGL(self):
 
@@ -58,7 +58,6 @@ class MainWindow(window.Window):
     def rotate_world(self):
         # know bird.roty is off of (1,0)
         ref_angle = self.bird.roty
-        sys.stdout.write("RA: %s, " %(ref_angle))
         
         point1=0
         if (ref_angle >= 0 and ref_angle<=90):
@@ -69,7 +68,6 @@ class MainWindow(window.Window):
             point1 = -math.atan((ref_angle-180) * math.pi/180.0)
         else:
             point1 = math.atan((ref_angle) * math.pi/180.0)
-        sys.stdout.write("P1: %s, " %(point1))
 
         point2=0
         if (ref_angle >= 0 and ref_angle<=90):
@@ -82,43 +80,12 @@ class MainWindow(window.Window):
             # between -90 and 0
             point2 = math.atan((ref_angle+90) * math.pi/180.0)
 
-        sys.stdout.write("P2: %s, " %(point2))
-
-
         self.world.rotate(1, point2, -point1)
-        #self.world.rotate(0, -point1)
-        #self.world.rotate(point2, 0)
-        
-        #self.world.roty += -point1
-        #self.world.rotx += point2
-
-        #if (self.world.rotx > 360):
-        #    self.world.rotx = 0
-
-        #if (self.world.roty > 360):
-        #    self.world.roty = 0
-
-        #sys.stdout.write("RX: %s, " %(self.world.rotx))
-        #sys.stdout.write("RY: %s, " %(self.world.roty))
-
-
-        sys.stdout.write("\n")
-        #self.world.rotate(point2, -point1)
-
-        #speed = 1
-        #norm = math.sqrt(self.bird.dest_x*self.bird.dest_x + self.bird.dest_y*self.bird.dest_y)
-        #if (norm):
-            #self.world.rotate(speed*self.bird.dest_y/norm, -speed*self.bird.dest_x/norm)
-        #    self.world.rotate(0, -speed*self.bird.dest_x/norm)
-        #    self.world.rotate(speed*self.bird.dest_y/norm, 0)
-            
-        
-
         
     def animate_bird(self, interval):
         self.bird.flap()
         self.rotate_world()
-        #self.bird.move()
+        self.enemy.move(45)
 
     def update(self):
         pass
@@ -126,19 +93,23 @@ class MainWindow(window.Window):
     def draw(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
+
+        glPushMatrix()
+        self.world.draw()
+        glPopMatrix()
+
         glPushMatrix()
         self.bird.draw()
         glPopMatrix()
         
         glPushMatrix()
-        self.world.draw()
+        self.enemy.draw()
         glPopMatrix()
         
         
     def main_loop(self):
         clock.set_fps_limit(30)
         clock.schedule_interval(self.animate_bird, 0.01)
-        #clock.schedule_interval(self.rotate_world, 0.1)
         
         while not self.has_exit:
             self.dispatch_events()
@@ -159,8 +130,8 @@ class MainWindow(window.Window):
     def on_mouse_motion(self, x, y, dx, dy):
         new_dest_x = (float(x - self.width/2.0) / (self.width/2.0))*4.0
         new_dest_y = (float(y - self.height/2.0) / (self.height/2.0))*4.0
-        old_dest_x = 0#self.bird.dest_x
-        old_dest_y = 0#self.bird.dest_y
+        old_dest_x = 0
+        old_dest_y = 0
 
         y_rot = old_dest_y - new_dest_y
         x_rot = old_dest_x - new_dest_x
@@ -193,8 +164,6 @@ class MainWindow(window.Window):
         if (self.world.oldRotationMatrix):
             self.world.resetMatrix = self.world.oldRotationMatrix
 
-        #self.world.oldRotationMatrix = None
-       
 
     def on_resize(self, width, height):
         glViewport(0, 0, width, height)

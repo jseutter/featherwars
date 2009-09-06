@@ -4,7 +4,7 @@ import os
 
 # Load Bitmaps And Convert To Textures
 def LoadGLTextures(filename):
-    print os.getcwd()
+    #print os.getcwd()
     pic = image.load(filename)
     texture = pic.get_texture()
     glEnable(texture.target)

@@ -8,15 +8,10 @@ from pyglet import window
 from pyglet import clock
 from pyglet import font
 
-LightAmbient = [ 0.5, 1.0, 0.5, 1.0 ]
-LightDiffuse = [ 1.0, 1.0, 1.0, 1.0 ]
-LightPosition = [ -50.0, 0.0, 2.0, 1.0 ]
-
-
 light_position = [ -1.0, 0.5, 6.0, 0.0 ]
-mat_ambient = [ 0.8, 0, 0, 1.0 ]
+mat_ambient = [ 0.8, 0.3, 0.3, 1.0 ]
 mat_diffuse = [ 0.9, 0.7, 0.1, 1.0 ]
-mat_specular = [ 1.0, 1.0, 1.0, 1.0 ]
+mat_specular = [ 0.9, 0.9, 0.9, 1.0 ]
 mat_shininess = [ 50.0 ]
 
 def vec(*args):
@@ -40,13 +35,9 @@ class World:
         self.resetMatrix = None
 
     def rotate(self, angle, new_rotx, new_roty):
-        #print "NRX: ", new_rotx, "NRY: ", new_roty
-
         glPushMatrix()
 
         glLoadIdentity()
-        #glRotatef(new_rotx, 1,0,0)
-        #glRotatef(new_roty, 0,1,0)
         glRotatef(angle, new_rotx, new_roty, 0)
         
         if (self.oldRotationMatrix):
@@ -59,20 +50,11 @@ class World:
         
         glPopMatrix()
 
-    def draw(self):
-
-        glLoadIdentity()
-        glTranslatef(0,0,-40)
-        
-        # rotate by the new values
-        glRotatef(self.rotx, 1,0,0)
-        glRotatef(self.roty, 0,1,0)
-        glRotatef(self.rotz, 0,0,1)
-
+    def setupLights(self):
         # rotate with save matrix
         if (self.oldRotationMatrix):
             glMultMatrixf( (ctypes.c_float*16)(*self.oldRotationMatrix) )
-        
+            
 
         glShadeModel(GL_SMOOTH)               # Enable Smooth Shading
 
@@ -81,9 +63,9 @@ class World:
         
         glLightfv ( GL_LIGHT0, GL_POSITION,
                     (GLfloat * len(light_position))(*light_position))
-        glEnable ( GL_LIGHTING );
-        glEnable ( GL_LIGHT0 );
-        glShadeModel ( GL_SMOOTH );
+        glEnable ( GL_LIGHTING )
+        glEnable ( GL_LIGHT0 )
+        glShadeModel ( GL_SMOOTH )
         glMaterialfv ( GL_FRONT, GL_AMBIENT,
                        (GLfloat * len(mat_ambient))(*mat_ambient))
         glMaterialfv ( GL_FRONT, GL_DIFFUSE,
@@ -96,12 +78,21 @@ class World:
 
  
 
-        glDisable(GL_TEXTURE_2D)
+    def draw(self):
 
+        glLoadIdentity()
+        glTranslatef(0,0,-40)
+        
+        # rotate by the new values
+        glRotatef(self.rotx, 1,0,0)
+        glRotatef(self.roty, 0,1,0)
+        glRotatef(self.rotz, 0,0,1)
+
+        self.setupLights()
+
+        glBindTexture(self.texture.target, self.texture.id)
+        #glDisable(GL_TEXTURE_2D)
         glColor3f(0,1,0)
         gluSphere(self.quadratic,self.radius,32,32)
-        gluCylinder(self.quadratic,1,1,20,32,32)
-        glRotatef(-90,0,1,0)
-        gluCylinder(self.quadratic,1,1,20,32,32)
-        glEnable(GL_TEXTURE_2D)
+        #glEnable(GL_TEXTURE_2D)
 

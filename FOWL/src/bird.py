@@ -1,8 +1,6 @@
 from pyglet.gl import *
 from helper import LoadGLTextures
 
-
-
 class Bird:
     birdTexture=None
     
